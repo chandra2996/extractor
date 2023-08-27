@@ -9,13 +9,13 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 @NoArgsConstructor
-public class ResponseStatusDto extends BaseDto {
+public class ResponseStatus extends BaseDto {
 
     private Integer value;
 
     private String phrase;
 
-    public ResponseStatusDto(final HttpStatus status) {
+    public ResponseStatus(final HttpStatus status) {
         this.value = status.value();
         this.phrase = status.getReasonPhrase();
     }

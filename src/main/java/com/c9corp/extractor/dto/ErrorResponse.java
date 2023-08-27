@@ -12,7 +12,7 @@ import lombok.*;
 @Setter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ErrorResponseDto<T> extends BaseDto {
+public class ErrorResponse<T> extends BaseDto {
 
     private String message;
 

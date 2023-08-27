@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @Builder
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public class PageDetailsDto extends BaseDto {
+public class PageExtractedData extends BaseDto {
 
     private Integer pageNumber;
 
@@ -37,7 +37,5 @@ public class PageDetailsDto extends BaseDto {
 
     private String pagePath;
 
-    private String extractedPagePath;
-
-    private List<TextDto> textDetails = new ArrayList<>();
+    private List<Word> textDetails = new ArrayList<>();
 }

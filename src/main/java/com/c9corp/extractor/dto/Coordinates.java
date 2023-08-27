@@ -12,7 +12,7 @@ import lombok.*;
 @Setter
 @Builder
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public class CoordinatesDto extends BaseDto {
+public class Coordinates extends BaseDto {
 
     private Double x;
 

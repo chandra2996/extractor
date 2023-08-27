@@ -11,5 +11,5 @@ import java.util.List;
 @Builder
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class ExtractResponse {
-    List<PageDetailsDto> extractedPages;
+    List<PageExtractedData> extractedPages;
 }

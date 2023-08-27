@@ -1,13 +1,12 @@
 package com.c9corp.extractor;
 
-import com.c9corp.extractor.dto.CoordinatesDto;
+import com.c9corp.extractor.dto.Coordinates;
 import com.c9corp.extractor.dto.ExtractResponse;
-import com.c9corp.extractor.dto.PageDetailsDto;
-import com.c9corp.extractor.dto.TextDto;
+import com.c9corp.extractor.dto.PageExtractedData;
+import com.c9corp.extractor.dto.Word;
 import lombok.RequiredArgsConstructor;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract1;
-import net.sourceforge.tess4j.Word;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -37,25 +36,25 @@ public class ExtractionService {
 
         try (InputStream inputStream = file.getInputStream();
              PDDocument document = PDDocument.load(inputStream)) {
-            List<PageDetailsDto> extractedPageData = new ArrayList<>();
+            List<PageExtractedData> extractedPageData = new ArrayList<>();
             if (document.getDocumentCatalog().getAcroForm() == null) {
                 document.getDocumentCatalog().getPages().forEach(pdPage -> pdPage.setAnnotations(null));
             }
             ExecutorService fixedTHreadExecutor = Executors.newFixedThreadPool(2);
-            List<Future<PageDetailsDto>> futureExtractList = new ArrayList<>();
+            List<Future<PageExtractedData>> futureExtractList = new ArrayList<>();
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             for (int pageIndex = 0; pageIndex < document.getNumberOfPages(); pageIndex++) {
                 boolean isUseTextract = false;
                 BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(pageIndex, 300, ImageType.BINARY);
                 try {
                     int finalPageIndex = pageIndex;
-                    Future<PageDetailsDto> futureExtract = fixedTHreadExecutor.submit(() -> {
+                    Future<PageExtractedData> futureExtract = fixedTHreadExecutor.submit(() -> {
                         ITesseract tesseract = new Tesseract1();
                         tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
                         tesseract.setLanguage("eng");
                         tesseract.setPageSegMode(1);
                         tesseract.setOcrEngineMode(1);
-                        PageDetailsDto pageData = extractFile(tesseract, bufferedImage, extractType, extractCoordinates);
+                        PageExtractedData pageData = extractFile(tesseract, bufferedImage, extractType, extractCoordinates);
                         if (!ObjectUtils.isEmpty(pageData)) {
                             pageData.setPageNumber(finalPageIndex + 1);
                         }
@@ -66,7 +65,7 @@ public class ExtractionService {
                     isUseTextract = true;
                 }
             }
-            for (Future<PageDetailsDto> futureExtract: futureExtractList) {
+            for (Future<PageExtractedData> futureExtract : futureExtractList) {
                 var response = futureExtract.get();
                 extractedPageData.add(response);
 
@@ -78,19 +77,19 @@ public class ExtractionService {
     }
 
 
-    public PageDetailsDto extractFile(ITesseract tesseract, BufferedImage bufferedImage, int extractType, boolean extractCoordinates) {
-        final List<TextDto> texts = new ArrayList<>();
+    public PageExtractedData extractFile(ITesseract tesseract, BufferedImage bufferedImage, int extractType, boolean extractCoordinates) {
+        final List<Word> texts = new ArrayList<>();
         try {
             final int pageHeight = bufferedImage.getHeight();
             final int pageWidth = bufferedImage.getWidth();
 
-            final List<Word> words = tesseract.getWords(bufferedImage, extractType);
+            final List<net.sourceforge.tess4j.Word> words = tesseract.getWords(bufferedImage, extractType);
             words.forEach(word -> {
                 try {
-                    TextDto textDto = TextDto.builder().text(word.getText()).confidence((double) word.getConfidence())
+                    Word textDto = Word.builder().text(word.getText()).confidence((double) word.getConfidence())
                             .build();
                     if (extractCoordinates) {
-                        final CoordinatesDto coordinates = CoordinatesDto.builder().x(word.getBoundingBox().getX())
+                        final Coordinates coordinates = Coordinates.builder().x(word.getBoundingBox().getX())
                                 .y(word.getBoundingBox().getY()).height(word.getBoundingBox().getHeight())
                                 .width(word.getBoundingBox().getWidth()).build();
                         textDto.setCoordinates(coordinates);
@@ -106,8 +105,8 @@ public class ExtractionService {
         }
     }
 
-    PageDetailsDto buildTextDetails(List<TextDto> texts, Double pageHeight, Double pageWidth, String pageType, String engine) {
-        return PageDetailsDto.builder().textDetails(texts).pageHeight(pageHeight)
+    PageExtractedData buildTextDetails(List<Word> texts, Double pageHeight, Double pageWidth, String pageType, String engine) {
+        return PageExtractedData.builder().textDetails(texts).pageHeight(pageHeight)
                 .pageWidth(pageWidth).pageType(pageType)
                 .unit("Pixels").extractionEngine(engine).build();
     }

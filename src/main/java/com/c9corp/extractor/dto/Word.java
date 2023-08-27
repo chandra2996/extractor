@@ -12,11 +12,11 @@ import lombok.*;
 @Setter
 @Builder
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public class TextDto extends BaseDto {
+public class Word extends BaseDto {
 
     private String text;
 
     private Double confidence;
 
-    private CoordinatesDto coordinates;
+    private Coordinates coordinates;
 }
